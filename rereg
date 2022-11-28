@@ -9,8 +9,8 @@ do
     jobid1=`fsl_sub $FSLDIR/bin/fnirt \
         --in=${REG_DIR}/example_func2standard.nii.gz \
         --ref=${ORIG_REG_DIR}/example_func2standard.nii.gz \
-        --cout=${REG_DIR}/ef2s2_to_origef2s_warp.nii.gz \
-        --logout=${REG_DIR}/ef2s2_to_origef2s.log`
+        --cout=${REG_DIR}/ef2s_to_origef2s_warp.nii.gz \
+        --logout=${REG_DIR}/ef2s_to_origef2s.log`
     jobid2=`fsl_sub -j ${jobid1} $FSLDIR/bin/applywarp \
          -i ${REG_DIR}/example_func2standard.nii.gz \
          -r ${ORIG_REG_DIR}/example_func2standard.nii.gz \
@@ -22,7 +22,7 @@ do
         --premat=${REG_DIR}/example_func2standard.mat \
         --warp1=${REG_DIR}/example_func2standard_warp \
         --warp2=${REG_DIR}/ef2s_to_origef2s_warp.nii.gz \
-        --out=${REG_DIR}/ef2s_comprehensive \
+        --out=${REG_DIR}/ef2s_comprehensive_warp \
         --relout`
     jobid4=`fsl_sub -j ${jobid3} $FSLDIR/bin/applywarp \
          -i ${REG_DIR}/example_func.nii.gz \
