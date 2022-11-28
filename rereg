@@ -1,0 +1,27 @@
+#!/bin/bash
+
+for SUBJ in 1009616 1011692 1036309 1115944 1122042 1203365 1211995 1215145 1286904 1304292 1372568 1384553 1444713 1524340 1577919 1617178 1657461 1703079 1750134 1868103 1913259 1948550 2078558 2113756 2140162 2588914 2623760 2763820 2801414 2856319 2959059 2992871 3108322 3168119 3247186 3274734 3350430 3413126 3442470 3472458 3555352 3559327 3628662 3657773 3810060 3819464 3862673 3914248 3923711 3959534 4024345 4078821 4098578 4104563 4168387 4198091 4250225 4267080 4273119 4384192 4460328 4552279 4608408 4616609 4690228 4719393 4785284 4849628 5005740 5063365 5067950 5107202 5147510 5217346 5230622 5236853 5240376 5295882 5332326 5354038 5406088 5407906 5438931 5447159 5464178 5500490 5581318 5664400 5752134 5765250 5787307 5798676 5807955 5825270 5863265 5874770 5893054 5896847 5983692 5984001
+do
+    ORIG_REG_DIR=/data/frederic/ukbb/${SUBJ}/fMRI/rfMRI.ica/reg
+    REG_DIR=/data/frederic/ukbb/derivs/feat/${SUBJ}/fMRI/rfMRI_prestats.ica/reg
+
+    jobid1=`fsl_sub $FSLDIR/bin/fnirt \
+        --in=${REG_DIR}/example_func2standard.nii.gz \
+        --ref=${ORIG_REG_DIR}/example_func2standard.nii.gz \
+        --cout=${REG_DIR}/ef2s2_to_origef2s_warp.nii.gz \
+        --logout=${REG_DIR}/example_func2standard_to_example_func2standard.log`
+    jobid2=`fsl_sub -j ${jobid1} $FSLDIR/bin/applywarp \
+         -i ${REG_DIR}/example_func2standard.nii.gz \
+         -r ${ORIG_REG_DIR}/example_func2standard.nii.gz \
+         -o ${REG_DIR}/ef2s2_to_origef2s \
+         -w ${REG_DIR}/ef2s2_to_origef2s_warp.nii.gz \
+         --interp=spline --rel`
+    fsl_sub -j ${jobid2} $FSLDIR/bin/convertwarp \
+        --ref=${ORIG_REG_DIR}/example_func2standard.nii.gz \
+        --warp1=${REG_DIR}/example_func2standard_warp \
+        --warp2=${REG_DIR}/ef2s2_to_origef2s_warp.nii.gz \
+        --premat=func2struct.mat \
+        --out=${REG_DIR}/example_func2standard_gdc \
+        --relout
+
+done

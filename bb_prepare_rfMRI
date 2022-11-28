@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+#
+# Script name: bb_prepare_rfMRI
+#
+# Description: Script to generate the FEAT configuration file for resting fMRI.
+#
+# Authors: Fidel Alfaro-Almagro, Stephen M. Smith & Mark Jenkinson	
+#
+# Copyright 2017 University of Oxford
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+BB_BIN_DIR=/home/frederic/code/UK_biobank_pipeline_v_1-master
+export BB_BIN_DIR
+UKBB_DATA_DIR=/data/frederic/ukbb
+FSF_LOC=${UKBB_DATA_DIR}/derivs/feat/$1/fMRI
+FSF_NAME=${FSF_LOC}/rfMRI.fsf
+HERE=`pwd`
+
+# make the destination directory fresh
+rm -rf ${UKBB_DATA_DIR}/derivs/feat/$1
+mkdir -p ${FSF_LOC}
+
+. $BB_BIN_DIR/bb_pipeline_tools/bb_set_header 
+
+nameDir="${UKBB_DATA_DIR}/$1"
+
+#cp $BB_BIN_DIR/bb_data/design_ICA_nonSmoothed.fsf ${FSF_NAME}
+cp ${HERE}/design_rerun.fsf ${FSF_NAME}
+
+for elem in `cat ${FSF_NAME} | grep -oP '_--_\K.*?(?=_-_)' | sort | uniq` ; do
+    val=`echo ${!elem} | sed 's|/|\\\/|g'`
+    sed -i "s/_--_${elem}_-_/${val}/g" ${FSF_NAME}
+done 
+
+fmriNumVol=`${FSLDIR}/bin/fslval ${nameDir}/fMRI/rfMRI.nii.gz dim4`
+fmriTR=`${FSLDIR}/bin/fslval ${nameDir}/fMRI/rfMRI.nii.gz pixdim4`
+descrip=`${FSLDIR}/bin/fslval ${nameDir}/fMRI/rfMRI.nii.gz descrip`
+descrip=(`echo $descrip | tr ';' ' '`)
+fmriTE=${descrip[0]:3}
+fmriDwell=`${BB_BIN_DIR}/bb_pipeline_tools/bb_get_dwell_time ${nameDir}/fMRI/rfMRI.nii.gz`
+
+#$BB_BIN_DIR/bb_pipeline_tools/bb_GDC_half_voxel --workingdir=$1/fMRI/rfMRI_SBREF_GDC --in=$1/fMRI/rfMRI_SBREF.nii.gz --out=$1/fMRI/rfMRI_SBREF_ud.nii.gz --owarp=$1/fMRI/rfMRI_SBREF_ud_warp.nii.gz
+
+echo "set fmri(outputdir)     \""$FSF_LOC"/rfMRI_prestats.feat\"" >> ${FSF_NAME}
+echo "set feat_files(1)       \""$nameDir"/fMRI/rfMRI.nii.gz\"" >> ${FSF_NAME}
+echo "set alt_ex_func(1)      \""$nameDir"/fMRI/rfMRI_SBREF.nii.gz\"" >> ${FSF_NAME}
+echo "set unwarp_files(1)     \""$nameDir"/fMRI/rfMRI.ica/reg/unwarp/fieldmap_fout_to_T1_brain_rad.nii.gz\"" >> ${FSF_NAME}
+echo "set unwarp_files_mag(1) \""$nameDir"/T1/T1_brain.nii.gz\"" >> ${FSF_NAME}
+echo "set highres_files(1)    \""$nameDir"/T1/T1_brain.nii.gz\"" >> ${FSF_NAME}
+#echo "set fmri(gdc)           \""$nameDir"/fMRI/rfMRI_SBREF_ud_warp.nii.gz\"" >> ${FSF_NAME}
+echo "set fmri(tr) $fmriTR" >> ${FSF_NAME}
+echo "set fmri(npts) $fmriNumVol"  >> ${FSF_NAME}
+echo "set fmri(dwell) $fmriDwell" >> ${FSF_NAME}
+echo "set fmri(te) $fmriTE" >> ${FSF_NAME}
+
+echo "set fmri(st_file)               \""$HERE"/slicetimesintr.txt\"" >> ${FSF_NAME}
+#echo "set fmri(init_initial_highres)  \""$nameDir"/fMRI/rfMRI.ica/reg/example_func2highres.mat\"" >> ${FSF_NAME}
+#echo "set fmri(init_highres)          \""$nameDir"/fMRI/rfMRI.ica/reg/example_func2highres.mat\"" >> ${FSF_NAME}
+#echo "set fmri(init_standard)         \""$nameDir"/fMRI/rfMRI.ica/reg/highres2std.mat\"" >> ${FSF_NAME}
+
+. $BB_BIN_DIR/bb_pipeline_tools/bb_set_footer 
