@@ -3,3 +3,4 @@ applywarp.*
 happy.*
 core.*
 convertwarp.*
+*.nii.gz

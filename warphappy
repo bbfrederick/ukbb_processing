@@ -6,7 +6,7 @@ do
     INPUTDIR=/data/frederic/ukbb/derivs/happy/${SUBJ}
     OUTPUTDIR=${INPUTDIR}/std
     mkdir -p ${OUTPUTDIR}
-    for SUBFILE in vessels_map normapp_info
+    for SUBFILE in arteries_map veins_map vessels_map normapp_info cine_info
     do
         INPUTFILE=${INPUTDIR}/${SUBJ}_desc-${SUBFILE}.nii.gz
         OUTPUTFILE=${OUTPUTDIR}/${SUBJ}_desc-${SUBFILE}.nii.gz
