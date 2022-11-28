@@ -6,12 +6,16 @@ do
     INPUTDIR=/data/frederic/ukbb/derivs/happy/${SUBJ}
     OUTPUTDIR=${INPUTDIR}/std
     mkdir -p ${OUTPUTDIR}
-    #for SUBFILE in vessels_map normapp_info
-    for SUBFILE in vessels_map
+    for SUBFILE in vessels_map normapp_info
     do
         INPUTFILE=${INPUTDIR}/${SUBJ}_desc-${SUBFILE}.nii.gz
         OUTPUTFILE=${OUTPUTDIR}/${SUBJ}_desc-${SUBFILE}.nii.gz
 
-        fsl_sub $FSLDIR/bin/applywarp -i ${INPUTFILE} -r ${REG_DIR}/standard.nii.gz -o ${OUTPUTFILE} -w ${REG_DIR}/example_func2standard_warp --interp=spline --rel
+        fsl_sub $FSLDIR/bin/applywarp \
+            -i ${INPUTFILE} \
+            -r ${REG_DIR}/standard.nii.gz \
+            -o ${OUTPUTFILE} \
+            -w ${REG_DIR}/ef2s_comprehensive_warp.nii.gz \
+            --interp=spline --rel
     done
 done
